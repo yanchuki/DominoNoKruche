@@ -1,5 +1,5 @@
 import pygame as pg
-
+pg.init()
 
 class Unit(pg.sprite.Sprite):
     def __init__(self, pos: tuple, color):
@@ -10,6 +10,10 @@ class Unit(pg.sprite.Sprite):
         self.color = color
         pg.draw.circle(self.image, color, (45, 45), 45)
         pg.draw.circle(self.image, 'black', (45, 45), 45, 3)
+        self.power = 1
+        font = pg.font.SysFont('arial', 20)
+        self.power_image = font.render(str(self.power), True, (154, 219, 171))
+        self.image.blit(self.power_image, (70, 20))
         self.rect = self.image.get_rect(center=pos)
 
     def is_pressed(self):
@@ -28,6 +32,12 @@ class Unit(pg.sprite.Sprite):
                 (self.rect.centerx + 100, self.rect.centery - 100),
                 (self.rect.centerx + 100, self.rect.centery + 100),
                 (self.rect.centerx - 100, self.rect.centery),
+                (self.rect.centerx + 100, self.rect.centery),
+                (self.rect.centerx, self.rect.centery + 100),
+                (self.rect.centerx, self.rect.centery - 100)]
+
+    def get_x_y_neighbours(self):
+        return [(self.rect.centerx - 100, self.rect.centery),
                 (self.rect.centerx + 100, self.rect.centery),
                 (self.rect.centerx, self.rect.centery + 100),
                 (self.rect.centerx, self.rect.centery - 100)]

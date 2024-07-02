@@ -85,6 +85,7 @@ class Game:
             if unit.is_pressed() and self.choose_timer == 120:
                 self.current_unit = None if self.current_unit else unit
                 self.choose_timer = 0
+                self.__count_neighbours()
                 break
 
     def __unit_move(self):
@@ -121,6 +122,16 @@ class Game:
                     break
                 else:
                     tile.sprite = None
+
+    def __count_neighbours(self):
+        if self.current_unit is not None:
+            neighbours_count = 0
+            for coord in self.current_unit.get_x_y_neighbours():
+                for unit in self.units_group:
+                    if unit.rect.collidepoint(coord) and self.current_unit.color == unit.color:
+                        neighbours_count += 1
+                        break
+            self.current_unit.power = neighbours_count
 
     @staticmethod
     def __get_tiles():
