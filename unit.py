@@ -26,6 +26,13 @@ class Unit(pg.sprite.Sprite):
         m_pos = pg.mouse.get_pos()
         return abs(self.rect.centerx - m_pos[0]) < 150 and abs(self.rect.centery - m_pos[1]) < 150
 
+    def update_power_image(self):
+        font = pg.font.SysFont('arial', 20)
+        pg.draw.circle(self.image, self.color, (45, 45), 45)
+        pg.draw.circle(self.image, 'black', (45, 45), 45, 3)
+        self.power_image = font.render(str(self.power), True, (154, 219, 171))
+        self.image.blit(self.power_image, (70, 20))
+
     def get_neighbours(self):
         return [(self.rect.centerx - 100, self.rect.centery - 100),
                 (self.rect.centerx - 100, self.rect.centery + 100),

@@ -32,6 +32,7 @@ class Game:
         )
 
         self.__fill_tiles()
+        self.__count_neighbours()
 
         self.FPS = pg.time.Clock()
 
@@ -85,7 +86,6 @@ class Game:
             if unit.is_pressed() and self.choose_timer == 120:
                 self.current_unit = None if self.current_unit else unit
                 self.choose_timer = 0
-                self.__count_neighbours()
                 break
 
     def __unit_move(self):
@@ -100,6 +100,7 @@ class Game:
                         tile.sprite.kill()
                         tile.sprite = None
                     self.__fill_tiles()
+                    self.__count_neighbours()
 
     def __draw_points(self):
         if self.current_unit is not None:
@@ -124,14 +125,14 @@ class Game:
                     tile.sprite = None
 
     def __count_neighbours(self):
-        if self.current_unit is not None:
+        for first_unit in self.units_group:
             neighbours_count = 0
-            for coord in self.current_unit.get_x_y_neighbours():
-                for unit in self.units_group:
-                    if unit.rect.collidepoint(coord) and self.current_unit.color == unit.color:
+            for coord in first_unit.get_x_y_neighbours():
+                for second_unit in self.units_group:
+                    if second_unit.rect.collidepoint(coord) and first_unit.color == second_unit.color:
                         neighbours_count += 1
-                        break
-            self.current_unit.power = neighbours_count
+            first_unit.power = neighbours_count
+            first_unit.update_power_image()
 
     @staticmethod
     def __get_tiles():
