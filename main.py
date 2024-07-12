@@ -134,6 +134,13 @@ class Game:
             first_unit.power = neighbours_count
             first_unit.update_power_image()
 
+    def __count_power(self, unit):
+        general_power = 0
+        for unit in self.units_group:
+            if unit.rect.center in self.current_unit.get_x_y_neighbours():
+                general_power += self.__count_power(unit) - 1
+
+
     @staticmethod
     def __get_tiles():
         tiles = pg.sprite.Group()
