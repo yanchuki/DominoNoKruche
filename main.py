@@ -32,7 +32,7 @@ class Game:
         )
 
         self.__fill_tiles()
-        self.__count_neighbours()
+        # self.__count_neighbours()
 
         self.FPS = pg.time.Clock()
 
@@ -42,6 +42,9 @@ class Game:
         # Turns
         self.turn_flag = choice([True, False])
         self.current_unit = None
+
+        self.__set_neighbours()
+        self.__set_chains_power()
 
     def run(self):
         while True:
@@ -63,7 +66,6 @@ class Game:
             self.__unit_move()
 
             self.__show_turn()
-
             self.FPS.tick(240)
             pg.display.update()
 
@@ -93,6 +95,7 @@ class Game:
             m_pos = pg.mouse.get_pos()
             for tile in self.tiles:
                 if tile.rect.collidepoint(m_pos) and self.current_unit.can_move() and tile.sprite is not self.current_unit:
+                    cur = self.current_unit
                     if not tile.sprite:
                         self.current_unit.rect.center = tile.rect.center
                         self.__switch_turn()
@@ -100,12 +103,13 @@ class Game:
                         tile.sprite.kill()
                         tile.sprite = None
                     self.__fill_tiles()
-                    self.__count_neighbours()
+                    self.__set_neighbours()
+                    self.__set_chains_power()
 
     def __draw_points(self):
         if self.current_unit is not None:
             for tile in self.tiles:
-                if not tile.sprite and tile.rect.center in self.current_unit.get_neighbours():
+                if not tile.sprite and tile.rect.center in self.current_unit.get_neighbours_cords():
                     pg.draw.circle(self.screen, 'green', tile.rect.center, 20)
 
     def __show_turn(self):
@@ -124,22 +128,32 @@ class Game:
                 else:
                     tile.sprite = None
 
-    def __count_neighbours(self):
-        for first_unit in self.units_group:
-            neighbours_count = 0
-            for coord in first_unit.get_x_y_neighbours():
-                for second_unit in self.units_group:
-                    if second_unit.rect.collidepoint(coord) and first_unit.color == second_unit.color:
-                        neighbours_count += 1
-            first_unit.power = neighbours_count
-            first_unit.update_power_image()
-
-    def __count_power(self, unit):
-        general_power = 0
+    def __set_neighbours(self):
         for unit in self.units_group:
-            if unit.rect.center in self.current_unit.get_x_y_neighbours():
-                general_power += self.__count_power(unit) - 1
+            unit.neighbours = pg.sprite.Group()
+            for neighbour in self.units_group:
+                for cord in unit.get_neighbours_x_y_cords():
+                    if neighbour.rect.collidepoint(cord) and neighbour.color == unit.color:
+                        unit.neighbours.add(neighbour)
 
+    def __count_unit_chain(self, head, chain: pg.sprite.Group):
+        count = 0
+        if len(head.neighbours) == 0:
+            if head not in chain:
+                count += 1
+                chain.add(head)
+        else:
+            for neighbour in head.neighbours:
+                if neighbour not in chain:
+                    count += 1
+                    chain.add(neighbour)
+                    count += self.__count_unit_chain(neighbour, chain)
+        return count
+
+    def __set_chains_power(self):
+        for unit in self.units_group:
+            unit.power = self.__count_unit_chain(unit, pg.sprite.Group())
+            unit.update_power_image()
 
     @staticmethod
     def __get_tiles():
