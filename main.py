@@ -2,8 +2,21 @@ import pygame as pg
 from map import Tile
 from unit import Unit, Fortress
 from random import choice
+pg.init()
 
 class Game:
+
+    bg_theme = pg.mixer.Sound('sources/sounds/Background_theme.mp3')
+    bg_theme.set_volume(0.1)
+
+    choose_unit_sound = pg.mixer.Sound('sources/sounds/Choose_unit_sound_effect.wav')
+    choose_unit_sound.set_volume(0.35)
+
+    killing_sound_effect = pg.mixer.Sound('sources/sounds/killing_sound_effect.mp3')
+    killing_sound_effect.set_volume(0.35)
+
+    move_sound_effect = pg.mixer.Sound('sources/sounds/move_sound_effect.wav')
+    move_sound_effect.set_volume(0.35)
     def __init__(self):
         # Screen
         self.screen = pg.display.set_mode((1000, 700))
@@ -47,6 +60,7 @@ class Game:
         self.__set_chains_power()
 
     def run(self):
+        self.bg_theme.play(-1)
         while True:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -86,6 +100,7 @@ class Game:
         sprites = self.blue_units.sprites() if self.turn_flag else self.red_units.sprites()
         for unit in sprites:
             if unit.is_pressed() and self.choose_timer == 120:
+                self.choose_unit_sound.play()
                 self.current_unit = None if self.current_unit else unit
                 self.choose_timer = 0
                 break
@@ -95,11 +110,12 @@ class Game:
             m_pos = pg.mouse.get_pos()
             for tile in self.tiles:
                 if tile.rect.collidepoint(m_pos) and self.current_unit.can_move() and tile.sprite is not self.current_unit:
-                    cur = self.current_unit
                     if not tile.sprite:
+                        self.move_sound_effect.play()
                         self.current_unit.rect.center = tile.rect.center
                         self.__switch_turn()
-                    if tile.sprite and tile.sprite.color != self.current_unit.color:
+                    if tile.sprite and tile.sprite.color != self.current_unit.color and self.current_unit.power > tile.sprite.power:
+                        self.killing_sound_effect.play()
                         tile.sprite.kill()
                         tile.sprite = None
                     self.__fill_tiles()

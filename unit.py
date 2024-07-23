@@ -61,7 +61,7 @@ class Fortress(pg.sprite.Sprite):
         self.image.fill('white')
         pg.draw.circle(self.image, color, (45, 45), 45)
         pg.draw.circle(self.image, 'black', (45, 45), 45, 3)
-        crown = pg.transform.scale(pg.image.load('crown.png'), (40, 40))
+        crown = pg.transform.scale(pg.image.load('sources/images/crown.png'), (40, 40))
         self.image.blit(crown, (25, 25))
         self.rect = self.image.get_rect(center=pos)
         self.color = color
