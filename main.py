@@ -121,6 +121,7 @@ class Game:
                     self.__fill_tiles()
                     self.__set_neighbours()
                     self.__set_chains_power()
+                    self.__spawn_random_unit()
 
     def __draw_points(self):
         if self.current_unit is not None:
@@ -143,6 +144,22 @@ class Game:
                     break
                 else:
                     tile.sprite = None
+
+    def __spawn_random_unit(self):
+        random_tiles = pg.sprite.Group()
+        for tile in self.tiles:
+            if tile.sprite is None and (tile.rect.y == 500 or tile.rect.y == 0):
+                random_tiles.add(tile)
+        if len(random_tiles) > 0:
+            random_tile = choice(random_tiles.sprites())
+            if random_tile.rect.y == 500:
+                sprite = Unit(random_tile.rect.center, 'blue')
+                self.blue_units.add(sprite)
+            else:
+                sprite = Unit(random_tile.rect.center, 'red')
+                self.red_units.add(sprite)
+            random_tile.sprite = sprite
+            self.units_group.add(sprite)
 
     def __set_neighbours(self):
         for unit in self.units_group:
