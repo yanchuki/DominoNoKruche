@@ -55,6 +55,7 @@ class Game:
         # Turns
         self.turn_flag = choice([True, False])
         self.current_unit = None
+        self.turn_counter = 0
 
         self.__set_neighbours()
         self.__set_chains_power()
@@ -95,6 +96,7 @@ class Game:
     def __switch_turn(self):
         self.turn_flag = not self.turn_flag
         self.current_unit = None
+        self.turn_counter += 1
 
     def __choose_unit(self):
         sprites = self.blue_units.sprites() if self.turn_flag else self.red_units.sprites()
@@ -110,9 +112,12 @@ class Game:
             m_pos = pg.mouse.get_pos()
             for tile in self.tiles:
                 if tile.rect.collidepoint(m_pos) and self.current_unit.can_move() and tile.sprite is not self.current_unit:
+                    current_pos = self.current_unit.rect.center
+                    end_move_pos = None
                     if not tile.sprite:
                         self.move_sound_effect.play()
                         self.current_unit.rect.center = tile.rect.center
+                        end_move_pos = self.current_unit.rect.center
                         self.__switch_turn()
                     if tile.sprite and tile.sprite.color != self.current_unit.color and self.current_unit.power > tile.sprite.power:
                         self.killing_sound_effect.play()
@@ -120,8 +125,11 @@ class Game:
                         tile.sprite = None
                     self.__fill_tiles()
                     self.__set_neighbours()
+                    if self.turn_counter % 3 == 0:
+                        if end_move_pos is not None and end_move_pos != current_pos:
+                            self.__spawn_random_unit()
                     self.__set_chains_power()
-                    self.__spawn_random_unit()
+
 
     def __draw_points(self):
         if self.current_unit is not None:
@@ -146,20 +154,26 @@ class Game:
                     tile.sprite = None
 
     def __spawn_random_unit(self):
-        random_tiles = pg.sprite.Group()
+        random_blue_tiles = pg.sprite.Group()
+        random_red_tiles = pg.sprite.Group()
         for tile in self.tiles:
-            if tile.sprite is None and (tile.rect.y == 500 or tile.rect.y == 0):
-                random_tiles.add(tile)
-        if len(random_tiles) > 0:
-            random_tile = choice(random_tiles.sprites())
-            if random_tile.rect.y == 500:
-                sprite = Unit(random_tile.rect.center, 'blue')
-                self.blue_units.add(sprite)
-            else:
-                sprite = Unit(random_tile.rect.center, 'red')
-                self.red_units.add(sprite)
-            random_tile.sprite = sprite
+            if tile.sprite is None:
+                if tile.rect.y == 500:
+                    random_blue_tiles.add(tile)
+                elif tile.rect.y == 0:
+                    random_red_tiles.add(tile)
+        if len(random_blue_tiles) > 0:
+            random_blue_tile = choice(random_blue_tiles.sprites())
+            sprite = Unit(random_blue_tile.rect.center, 'blue')
+            self.blue_units.add(sprite)
             self.units_group.add(sprite)
+            self.all_playable_sprites.add(sprite)
+        if len(random_red_tiles) > 0:
+            random_red_tile = choice(random_red_tiles.sprites())
+            sprite = Unit(random_red_tile.rect.center, 'red')
+            self.red_units.add(sprite)
+            self.units_group.add(sprite)
+            self.all_playable_sprites.add(sprite)
 
     def __set_neighbours(self):
         for unit in self.units_group:
