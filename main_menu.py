@@ -14,7 +14,7 @@ class Button(pg.sprite.Sprite):
     def is_pressed(self):
         mpos = pg.mouse.get_pos()
         m_pressed = pg.mouse.get_pressed()
-        if m_pressed[0] and self.rect.collidepoint(m_pos):
+        if m_pressed[0] and self.rect.collidepoint(mpos):
             return True
         return False
 
