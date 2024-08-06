@@ -2,6 +2,7 @@ import pygame as pg
 from map import Tile
 from unit import Unit, Fortress
 from random import choice
+from main_menu import Button
 pg.init()
 
 class Game:
@@ -17,9 +18,11 @@ class Game:
 
     move_sound_effect = pg.mixer.Sound('sources/sounds/move_sound_effect.wav')
     move_sound_effect.set_volume(0.35)
+
     def __init__(self):
         # Screen
         self.screen = pg.display.set_mode((1000, 700))
+        self.screen.fill('white')
 
         # Tiles
         self.tiles = self.__get_tiles()
@@ -57,8 +60,20 @@ class Game:
         self.current_unit = None
         self.turn_counter = 0
 
+        # Neighbors
         self.__set_neighbours()
         self.__set_chains_power()
+
+        # Buttons
+        self.play_button = Button((100, 100), (500, 350), 'Play')
+
+    def show_menu(self):
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    exit()
+            self.play_button.update(self.screen)
+            pg.display.update()
 
     def run(self):
         self.bg_theme.play(-1)
@@ -123,11 +138,11 @@ class Game:
                         self.killing_sound_effect.play()
                         tile.sprite.kill()
                         tile.sprite = None
-                    self.__fill_tiles()
-                    self.__set_neighbours()
                     if self.turn_counter % 3 == 0:
                         if end_move_pos is not None and end_move_pos != current_pos:
                             self.__spawn_random_unit()
+                    self.__fill_tiles()
+                    self.__set_neighbours()
                     self.__set_chains_power()
 
 
@@ -231,4 +246,4 @@ class Game:
 
 
 game = Game()
-game.run()
+game.show_menu()
