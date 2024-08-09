@@ -65,14 +65,19 @@ class Game:
         self.__set_chains_power()
 
         # Buttons
-        self.play_button = Button((100, 100), (500, 350), 'Play')
+        self.play_button = Button((110, 70), (500, 250), 'Play')
+        self.exit_button = Button((110, 70), (500, 450), 'Exit')
+        self.main_menu_button = Button((210, 70), (850, 550), 'Main Menu')
 
     def show_menu(self):
         while True:
             for event in pg.event.get():
-                if event.type == pg.QUIT:
+                if event.type == pg.QUIT or self.exit_button.is_pressed():
                     exit()
+            if self.play_button.is_pressed():
+                self.run()
             self.play_button.update(self.screen)
+            self.exit_button.update(self.screen)
             pg.display.update()
 
     def run(self):
@@ -97,6 +102,14 @@ class Game:
 
             self.__show_turn()
             self.FPS.tick(240)
+
+            # Button
+            self.main_menu_button.update(self.screen)
+            if self.main_menu_button.is_pressed():
+                self.screen.fill('white')
+                self.bg_theme.stop()
+                self.__init__()
+                break
             pg.display.update()
 
     def print_all_tiles(self):
