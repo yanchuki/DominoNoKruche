@@ -68,6 +68,17 @@ class Game:
         self.play_button = Button((110, 70), (500, 250), 'Play')
         self.exit_button = Button((110, 70), (500, 450), 'Exit')
         self.main_menu_button = Button((210, 70), (850, 550), 'Main Menu')
+        self.yes_button = Button((90, 70), (790, 650), 'Yes')
+        self.no_button = Button((90, 70), (910, 650), 'No')
+        self.buttons_group = pg.sprite.Group(
+            self.main_menu_button
+        )
+
+        # Text
+        font = pg.font.SysFont('Arial', 40)
+        self.text_image = font.render('Are you sure?', True, 'Black')
+        self.text_rect = self.text_image.get_rect(center=self.main_menu_button.rect.center)
+
 
     def show_menu(self):
         while True:
@@ -104,12 +115,20 @@ class Game:
             self.FPS.tick(240)
 
             # Button
-            self.main_menu_button.update(self.screen)
+            self.screen.blit(self.text_image, self.text_rect)
+            self.buttons_group.update(self.screen)
             if self.main_menu_button.is_pressed():
+                self.main_menu_button.kill()
+                self.buttons_group.add(self.yes_button, self.no_button)
+            if self.yes_button.is_pressed():
                 self.screen.fill('white')
                 self.bg_theme.stop()
                 self.__init__()
                 break
+            elif self.no_button.is_pressed():
+                self.yes_button.kill()
+                self.no_button.kill()
+                self.buttons_group.add(self.main_menu_button)
             pg.display.update()
 
     def print_all_tiles(self):
