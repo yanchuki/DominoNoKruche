@@ -3,6 +3,7 @@ from map import Tile
 from unit import Unit, Fortress
 from random import choice
 from main_menu import Button
+from time import sleep
 pg.init()
 
 class Game:
@@ -18,6 +19,8 @@ class Game:
 
     move_sound_effect = pg.mixer.Sound('sources/sounds/move_sound_effect.wav')
     move_sound_effect.set_volume(0.35)
+
+    game_over_sound_effect = pg.mixer.Sound('sources/sounds/Game_over_sound_effect.mp3')
 
     def __init__(self):
         # Screen
@@ -79,6 +82,10 @@ class Game:
         self.text_image = font.render('Are you sure?', True, 'Black')
         self.text_rect = self.text_image.get_rect(center=self.main_menu_button.rect.center)
 
+        # Game Over
+        self.over = False
+        self.curtain = pg.Surface(self.screen.get_size())
+        self.curtain.fill((250, 250, 250))
 
     def show_menu(self):
         while True:
@@ -129,12 +136,10 @@ class Game:
                 self.yes_button.kill()
                 self.no_button.kill()
                 self.buttons_group.add(self.main_menu_button)
-            pg.display.update()
 
-    def print_all_tiles(self):
-        for tile in self.tiles:
-            if tile.sprite:
-                print(tile.rect.center, tile.sprite)
+            if self.over:
+                self.black_out()
+            pg.display.update()
 
     def __reload_timer(self):
         if self.choose_timer < 120:
@@ -166,10 +171,16 @@ class Game:
                         self.current_unit.rect.center = tile.rect.center
                         end_move_pos = self.current_unit.rect.center
                         self.__switch_turn()
-                    if tile.sprite and tile.sprite.color != self.current_unit.color and self.current_unit.power > tile.sprite.power:
-                        self.killing_sound_effect.play()
-                        tile.sprite.kill()
-                        tile.sprite = None
+                    if tile.sprite and tile.sprite.color != self.current_unit.color:
+                        if isinstance(tile.sprite, Unit) and self.current_unit.power > tile.sprite.power:
+                            self.killing_sound_effect.play()
+                            tile.sprite.kill()
+                            tile.sprite = None
+                        elif isinstance(tile.sprite, Fortress) and self.current_unit.power > 3:
+                            self.game_over_sound_effect.play()
+                            tile.sprite.kill()
+                            tile.sprite = None
+                            self.over = True
                     if self.turn_counter % 3 == 0:
                         if end_move_pos is not None and end_move_pos != current_pos:
                             self.__spawn_random_unit()
@@ -177,6 +188,13 @@ class Game:
                     self.__set_neighbours()
                     self.__set_chains_power()
 
+    def black_out(self):
+        alpha = 720
+        while alpha != 0:
+            alpha -= 3
+            self.screen.blit(self.curtain, (0, 0))
+            pg.display.update()
+            self.FPS.tick(240)
 
     def __draw_points(self):
         if self.current_unit is not None:
