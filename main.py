@@ -85,7 +85,6 @@ class Game:
         # Game Over
         self.over = False
         self.curtain = pg.Surface(self.screen.get_size())
-        self.curtain.fill((250, 250, 250))
 
     def show_menu(self):
         while True:
@@ -127,9 +126,10 @@ class Game:
             if self.main_menu_button.is_pressed():
                 self.main_menu_button.kill()
                 self.buttons_group.add(self.yes_button, self.no_button)
-            if self.yes_button.is_pressed():
+            if self.yes_button.is_pressed() or self.over:
                 self.screen.fill('white')
                 self.bg_theme.stop()
+                self.black_out()
                 self.__init__()
                 break
             elif self.no_button.is_pressed():
@@ -137,8 +137,6 @@ class Game:
                 self.no_button.kill()
                 self.buttons_group.add(self.main_menu_button)
 
-            if self.over:
-                self.black_out()
             pg.display.update()
 
     def __reload_timer(self):
@@ -164,12 +162,13 @@ class Game:
             m_pos = pg.mouse.get_pos()
             for tile in self.tiles:
                 if tile.rect.collidepoint(m_pos) and self.current_unit.can_move() and tile.sprite is not self.current_unit:
-                    current_pos = self.current_unit.rect.center
-                    end_move_pos = None
+                    last_pos = None
+                    last_unit_color = None
                     if not tile.sprite:
                         self.move_sound_effect.play()
                         self.current_unit.rect.center = tile.rect.center
-                        end_move_pos = self.current_unit.rect.center
+                        last_pos = self.current_unit.rect.y
+                        last_unit_color = self.current_unit.color
                         self.__switch_turn()
                     if tile.sprite and tile.sprite.color != self.current_unit.color:
                         if isinstance(tile.sprite, Unit) and self.current_unit.power > tile.sprite.power:
@@ -181,8 +180,8 @@ class Game:
                             tile.sprite.kill()
                             tile.sprite = None
                             self.over = True
-                    if self.turn_counter % 3 == 0:
-                        if end_move_pos is not None and end_move_pos != current_pos:
+                    if self.turn_counter % 3 == 0 and last_pos is not None and last_unit_color is not None:
+                        if last_unit_color == 'red' and last_pos <= 0 or last_unit_color == 'blue' and last_pos > 500:
                             self.__spawn_random_unit()
                     self.__fill_tiles()
                     self.__set_neighbours()
@@ -190,8 +189,9 @@ class Game:
 
     def black_out(self):
         alpha = 720
-        while alpha != 0:
-            alpha -= 3
+        while alpha > 0:
+            alpha -= 1
+            self.curtain.fill((alpha//3, alpha//3, alpha//3))
             self.screen.blit(self.curtain, (0, 0))
             pg.display.update()
             self.FPS.tick(240)
